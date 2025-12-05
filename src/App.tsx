@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 
 type Flat = {
@@ -22,8 +22,39 @@ const initialFlats: Flat[] = addressList.map((addr, i) => ({
   address: addr,
 }));
 
+const STORAGE_KEY = "wohnungsAppFlats";
+
 export default function App() {
-  const [flats, setFlats] = useState<Flat[]>(initialFlats);
+  const [flats, setFlats] = useState<Flat[]>(() => {
+    // Beim ersten Start versuchen, aus localStorage zu laden
+    if (typeof window !== "undefined") {
+      try {
+        const saved = window.localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved) as Flat[];
+          if (Array.isArray(parsed)) {
+            return parsed;
+          }
+        }
+      } catch (e) {
+        console.error("Konnte gespeicherte Daten nicht laden:", e);
+      }
+    }
+    // Wenn nichts gespeichert ist: mit den Standard-Wohnungen starten
+    return initialFlats;
+  });
+  
+  // ⬇️ Speichern aktivieren – kommt direkt nach dem useState!
+useEffect(() => {
+  if (typeof window !== "undefined") {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(flats));
+    } catch (e) {
+      console.error("Konnte Daten nicht speichern:", e);
+    }
+  }
+}, [flats]);
+
 
   const getStatusClass = (flat: Flat) => {
     const free = flat.capacity - flat.used;
