@@ -12,14 +12,14 @@ const addressList: string[] = [
   "Musterstraße 12, 12345 Berlin",
   "Hauptweg 7, 98765 München",
   "Gartenallee 3, 54321 Hamburg",
-  // Rest erstmal leer
 ];
 
-const initialFlats: Flat[] = Array.from({ length: 40 }, (_, i) => ({
+// Start: nur die Beispielwohnungen, Rest kannst du selbst hinzufügen
+const initialFlats: Flat[] = addressList.map((addr, i) => ({
   id: i + 1,
   capacity: 4,
   used: 0,
-  address: addressList[i] ?? "",
+  address: addr,
 }));
 
 export default function App() {
@@ -63,9 +63,34 @@ export default function App() {
     );
   };
 
+  const addFlat = () => {
+    setFlats((prev) => {
+      const nextId =
+        prev.length > 0 ? Math.max(...prev.map((f) => f.id)) + 1 : 1;
+      return [
+        ...prev,
+        {
+          id: nextId,
+          capacity: 4,
+          used: 0,
+          address: "",
+        },
+      ];
+    });
+  };
+
+  const removeFlat = (id: number) => {
+    setFlats((prev) => prev.filter((flat) => flat.id !== id));
+  };
+
   return (
     <div className="app-container">
-      <h1>Wohnungsübersicht (40 Einheiten)</h1>
+      <h1>Wohnungsübersicht</h1>
+
+      <div className="toolbar">
+        <button onClick={addFlat}>+ Wohnung hinzufügen</button>
+        <span>{flats.length} Wohnungen</span>
+      </div>
 
       <div className="legend">
         <span className="legend-box status-green" /> frei (mehr als 2 Plätze)
@@ -78,7 +103,16 @@ export default function App() {
           const free = flat.capacity - flat.used;
           return (
             <div key={flat.id} className={getStatusClass(flat)}>
-              <h2>{flat.address ? flat.address : `Whg. ${flat.id}`}</h2>
+              <div className="card-header">
+                <h2>{flat.address ? flat.address : `Whg. ${flat.id}`}</h2>
+                <button
+                  className="delete-button"
+                  onClick={() => removeFlat(flat.id)}
+                  title="Wohnung löschen"
+                >
+                  ✕
+                </button>
+              </div>
 
               <label className="field">
                 Adresse:
